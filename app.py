@@ -32,5 +32,27 @@ def search():
     results = cursor.fetchall()
     return jsonify({"results": results})
 
+@app.route('/user/<user_id>')
+def get_user(user_id):
+    db = get_db()
+    # VULNERABLE: SQL injection via URL parameter
+    query = f"SELECT id, username, email FROM users WHERE id = {user_id}"
+    cursor = db.execute(query)
+    user = cursor.fetchone()
+    if user:
+        return jsonify({"id": user[0], "username": user[1], "email": user[2]})
+    return jsonify({"error": "User not found"}), 404
+
+@app.route('/admin/exec', methods=['POST'])
+def admin_exec():
+    # VULNERABLE: Command injection
+    cmd = request.json.get('command')
+    import subprocess
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return jsonify({"stdout": result.stdout, "stderr": result.stderr})
+
 if __name__ == '__main__':
     app.run(debug=True)
+# Search API
+# Updated
+# Final
